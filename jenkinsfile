@@ -1,0 +1,29 @@
+pipeline {
+    agent {
+        docker {
+            image 'goforgold/build-container:latest'
+        }
+    }
+
+    stages {
+        stage('build') {
+            steps {
+                sh 'npm install'
+            }
+
+        }
+        stage('Create packer AMI') {
+                steps {
+                    withCredentials([
+                    usernamePassword(credentialsId:'848ee33b-6fa2-469e-b78e-db8bbe476a39',
+                    passwordVariable: 'AWS_SECRET', usernameVariable: 'AWS_KEY')
+                    ]) {
+                        sh 'packer build -var aws_access_key=$(AWS_KEY), -var aws_secret_key=$(AWS_SECRET) packer/packer.json'
+                    }
+                }
+            }
+    }
+    environment {
+        npm_cache_config = 'npm-cache'
+    }
+}
